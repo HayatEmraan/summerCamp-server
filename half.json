@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Emily Davis",
+    "image": "https://st.depositphotos.com/1144472/2003/i/600/depositphotos_20030237-stock-photo-cheerful-young-man-over-white.jpg",
+    "phone": "123-456-7890",
+    "education": [
+      "MSc (English), University of Oxford (UK)",
+      "BA, MA (English), University of Dhaka"
+    ],
+    "ielts": 8.5,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "Mohammed Ahmed",
+    "image": "https://st.depositphotos.com/1269204/1219/i/600/depositphotos_12196477-stock-photo-smiling-men-isolated-on-the.jpg",
+    "phone": "987-654-3210",
+    "education": [
+      "MA (English Literature), Stanford University (USA)",
+      "BA (English), University of Toronto (Canada)"
+    ],
+    "ielts": 7.5,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "David Anderson",
+    "image": "https://t3.ftcdn.net/jpg/01/71/95/94/360_F_171959473_ZBB4oFctbvzd7RdaWRweOd6HUOPJwvVM.jpg",
+    "phone": "555-123-4567",
+    "education": [
+      "PhD (English Language and Literature), University of Cambridge (UK)",
+      "MA (English), University of Sydney (Australia)"
+    ],
+    "ielts": 8.0,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "Amit Patel",
+    "image": "https://t3.ftcdn.net/jpg/01/39/53/60/360_F_139536086_yxo4DDAgBMKCxwgdp8KJvzpZgnMC8Cpx.jpg",
+    "phone": "111-222-3333",
+    "education": [
+      "MA (TESOL), University of Edinburgh (UK)",
+      "BA (English Language and Linguistics), University of California, Los Angeles (USA)"
+    ],
+    "ielts": 7.0,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "Senthil Kumar",
+    "image": "https://media.istockphoto.com/id/1183038846/photo/theres-a-reason-im-still-standing.jpg?s=612x612&w=0&k=20&c=ggMjWlWBEuJXmtlL9dz34nidAykmdgVVl_EC4PYdwKA=",
+    "phone": "999-888-7777",
+    "education": [
+      "BA (English Literature), University of Melbourne (Australia)",
+      "CELTA Certification, International House London (UK)"
+    ],
+    "ielts": 7.5,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "Maria Garcia",
+    "image": "https://st3.depositphotos.com/4384909/33036/i/600/depositphotos_330369456-stock-photo-smart-middle-aged-grayed-man.jpg",
+    "phone": "444-555-6666",
+    "education": [
+      "MA (Applied Linguistics), University of Auckland (New Zealand)",
+      "BA (English), University of California, Berkeley (USA)"
+    ],
+    "ielts": 8.0,
+    "email": "example@gmail.com"
+  },
+  {
+    "name": "Carlos Rodriguez",
+    "image": "https://media.istockphoto.com/id/1183038846/photo/theres-a-reason-im-still-standing.jpg?s=612x612&w=0&k=20&c=ggMjWlWBEuJXmtlL9dz34nidAykmdgVVl_EC4PYdwKA=",
+    "phone": "444-555-6666",
+    "education": [
+      "MA (Applied Linguistics), University of Auckland (New Zealand)",
+      "BA (English), University of California, Berkeley (USA)"
+    ],
+    "ielts": 8.0,
+    "email": "example@gmail.com"
+  }
+]

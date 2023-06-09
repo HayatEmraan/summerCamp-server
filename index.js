@@ -47,6 +47,11 @@ async function run() {
         .toArray();
       res.send({ cursor, courses });
     });
+    // courses data send
+    app.get("/courses", async (req, res) => { 
+      const cursor = await coursesDB.find({}).toArray();
+      res.send(cursor);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(

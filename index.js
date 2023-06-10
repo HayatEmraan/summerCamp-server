@@ -8,6 +8,7 @@ const main = require("./main");
 const half = require("./half");
 app.use(cors());
 app.use(express.json());
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.1ki0ifk.mongodb.net/?retryWrites=true&w=majority`;
@@ -49,7 +50,7 @@ async function run() {
     const instructorDB = client.db("summerCamp").collection("instructorDB");
     const coursesDB = client.db("summerCamp").collection("coursesDB");
     const orderDB = client.db("summerCamp").collection("orderDB");
-
+    const paymentDB = client.db("summerCamp").collection("paymentDB");
     // JWT token sign
     app.post("/jwt", (req, res) => {
       const { email } = req.body;
@@ -84,6 +85,14 @@ async function run() {
       const cursor = await coursesDB.find({}).toArray();
       res.send(cursor);
     });
+    // trending courses data send
+    app.get("/courses/trending", async (req, res) => {
+      const cursor = await coursesDB
+        .find({})
+        .sort({ availableSits: 1 })
+        .toArray();
+      res.send(cursor);
+    });
     // order data post
     app.post("/order", async (req, res) => {
       const query = req.body;
@@ -100,6 +109,49 @@ async function run() {
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
       const cursor = await orderDB.deleteOne({ _id: new ObjectId(id) });
+      res.send(cursor);
+    });
+
+    // stripe payment intent
+    app.post("/api/payment", async (req, res) => {
+      const { price } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: parseInt(price * 100),
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ Intent: paymentIntent.client_secret });
+    });
+    // payment data post
+    app.post("/payment", async (req, res) => {
+      const query = req.body;
+      const cursor = await paymentDB.insertOne(query);
+      const deleteQuery = {
+        _id: { $in: query.courses.map((id) => new ObjectId(id._id)) },
+      };
+      const updateQuery = {
+        _id: { $in: query.courses.map((id) => new ObjectId(id.oid)) },
+      };
+      const NewUpdateQuery = {
+        $inc: {
+          availableSits: -1,
+        },
+      };
+      await coursesDB.updateMany(updateQuery, NewUpdateQuery);
+      await orderDB.deleteMany(deleteQuery);
+      res.send(cursor);
+    });
+    // payment history
+    app.get("/payment/history", verifyJWT, async (req, res) => {
+      const cursor = await paymentDB.find({ email: req.query.email }).toArray();
+      res.send(cursor);
+    });
+    // courses data & delete cart data
+    app.get("/courses/data", verifyJWT, async (req, res) => {
+      const { email } = req.query;
+      const cursor = await paymentDB
+        .find({ email: email }, { projection: { courses: 1 } })
+        .toArray();
       res.send(cursor);
     });
     // Send a ping to confirm a successful connection

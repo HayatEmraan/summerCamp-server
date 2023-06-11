@@ -108,8 +108,27 @@ async function run() {
         .toArray();
       res.send(cursor);
     });
-    app.get("/courses/list", async (req, res) => {
+    app.get("/courses/list", verifyJWT, async (req, res) => {
       const cursor = await coursesDB.find({}).toArray();
+      res.send(cursor);
+    });
+
+    app.patch("/courses/update/:id", async (req, res) => {
+      const query = req.body;
+      const id = req.params.id;
+      const cursor = await coursesDB.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { status: query.status } }
+      );
+      res.send(cursor);
+    });
+    app.patch("/courses/update/feedback/:id", async (req, res) => {
+      const query = req.body;
+      const id = req.params.id;
+      const cursor = await coursesDB.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { feedback: query.middle } }
+      );
       res.send(cursor);
     });
     // order data post

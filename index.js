@@ -25,12 +25,12 @@ const client = new MongoClient(uri, {
 // jwt token verify
 const verifyJWT = (req, res, next) => {
   const token = req.headers.authorization;
-  const splitToken = token.split(" ")[1];
   if (!token) {
     return res
       .status(403)
       .json({ error: true, message: "unauthorized access" });
   }
+  const splitToken = token.split(" ")[1];
   jwt.verify(splitToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({ error: true, message: "unauthorized" });
@@ -51,6 +51,7 @@ async function run() {
     const coursesDB = client.db("summerCamp").collection("coursesDB");
     const orderDB = client.db("summerCamp").collection("orderDB");
     const paymentDB = client.db("summerCamp").collection("paymentDB");
+    const usersDB = client.db("summerCamp").collection("usersDB");
     // JWT token sign
     app.post("/jwt", (req, res) => {
       const { email } = req.body;
@@ -105,13 +106,27 @@ async function run() {
       const cursor = await orderDB.find({ email: email }).toArray();
       res.send(cursor);
     });
+    app.get("/successful/orders/all", verifyJWT, async (req, res) => {
+      const cursor = await paymentDB.find({}).toArray();
+      res.send(cursor);
+    });
     // order delete
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
       const cursor = await orderDB.deleteOne({ _id: new ObjectId(id) });
       res.send(cursor);
     });
-
+    // all courses list
+    app.get("/courses/all", verifyJWT, async (req, res) => {
+      const cursor = await coursesDB.find({}).toArray();
+      res.send(cursor);
+    });
+    // courses data delete
+    app.delete("/courses/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const cursor = await coursesDB.deleteOne({ _id: new ObjectId(id) });
+      res.send(cursor);
+    });
     // stripe payment intent
     app.post("/api/payment", async (req, res) => {
       const { price } = req.body;
@@ -152,6 +167,38 @@ async function run() {
       const cursor = await paymentDB
         .find({ email: email }, { projection: { courses: 1 } })
         .toArray();
+      res.send(cursor);
+    });
+
+    // user data post
+    app.post("/users/data", async (req, res) => {
+      const query = req.body;
+      const find = await usersDB.findOne({ email: query.email });
+      if (find) {
+        return res.send({ message: "user already exist" });
+      }
+      const cursor = await usersDB.insertOne(query);
+      res.send(cursor);
+    });
+    // user data send
+    app.get("/users/data", verifyJWT, async (req, res) => {
+      const cursor = await usersDB.find({}).toArray();
+      res.send(cursor);
+    });
+    // user data delete
+    app.delete("/users/data/:id", async (req, res) => {
+      const id = req.params.id;
+      const cursor = await usersDB.deleteOne({ _id: new ObjectId(id) });
+      res.send(cursor);
+    });
+    // user update data
+    app.patch("/users/update/:id", async (req, res) => {
+      const query = req.body;
+      const id = req.params.id;
+      const cursor = await usersDB.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: { role: query.role } }
+      );
       res.send(cursor);
     });
     // Send a ping to confirm a successful connection

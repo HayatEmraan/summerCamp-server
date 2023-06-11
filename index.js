@@ -52,6 +52,7 @@ async function run() {
     const orderDB = client.db("summerCamp").collection("orderDB");
     const paymentDB = client.db("summerCamp").collection("paymentDB");
     const usersDB = client.db("summerCamp").collection("usersDB");
+    const classDB = client.db("summerCamp").collection("classDB");
     // JWT token sign
     app.post("/jwt", (req, res) => {
       const { email } = req.body;
@@ -80,18 +81,35 @@ async function run() {
     app.get("/courses", async (req, res) => {
       const { sort } = req.query;
       if (sort === "true") {
-        const cursor = await coursesDB.find({}).sort({ price: 1 }).toArray();
+        const cursor = await coursesDB
+          .find({ status: "success" })
+          .sort({ price: 1 })
+          .toArray();
         return res.send(cursor);
       }
-      const cursor = await coursesDB.find({}).toArray();
+      const cursor = await coursesDB.find({ status: "success" }).toArray();
+      res.send(cursor);
+    });
+    app.post("/class", async (req, res) => {
+      const query = req.body;
+      const cursor = await coursesDB.insertOne(query);
+      res.send(cursor);
+    });
+    app.get("/classes", async (req, res) => {
+      const { email } = req.query;
+      const cursor = await coursesDB.find({ email: email }).toArray();
       res.send(cursor);
     });
     // trending courses data send
     app.get("/courses/trending", async (req, res) => {
       const cursor = await coursesDB
-        .find({})
+        .find({ status: "success" })
         .sort({ availableSits: 1 })
         .toArray();
+      res.send(cursor);
+    });
+    app.get("/courses/list", async (req, res) => {
+      const cursor = await coursesDB.find({}).toArray();
       res.send(cursor);
     });
     // order data post

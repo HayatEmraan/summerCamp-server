@@ -84,8 +84,13 @@ async function run() {
       }
     };
     // admin verify
-    app.get("/api/admin/verify", verifyJWT, verifyAdmin, (req, res) => { 
-      res.send({ message: "verified" });
+    app.get("/api/admin/verify", verifyJWT, async (req, res) => {
+      const { email } = req.query;
+      const find = await usersDB.findOne({
+        email: email,
+        role: "admin",
+      });
+      res.send(find);
     });
     // about us team members
     app.get("/team", async (req, res) => {
@@ -93,7 +98,12 @@ async function run() {
       const team = await cursor.toArray();
       res.send(team);
     });
-    
+    // instructor verify
+    app.get("/api/instructor/verify", verifyJWT, async (req, res) => {
+      const { email } = req.query;
+      const find = await usersDB.findOne({ email: email, role: "instructor" });
+      res.send(find);
+    });
     // instructor list for courses
     app.get("/instuctor", async (req, res) => {
       const query = req.query.name;

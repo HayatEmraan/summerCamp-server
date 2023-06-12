@@ -27,13 +27,13 @@ const verifyJWT = (req, res, next) => {
   const token = req.headers.authorization;
   if (!token) {
     return res
-      .status(403)
+      .status(401)
       .json({ error: true, message: "unauthorized access" });
   }
   const splitToken = token.split(" ")[1];
   jwt.verify(splitToken, process.env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ error: true, message: "unauthorized" });
+      return res.status(403).json({ error: true, message: "forbidden access" });
     }
     req.decoded = decoded;
     next();
@@ -60,6 +60,30 @@ async function run() {
       res.json({ token });
     });
 
+    //verify admin
+    const verifyAdmin = async (req, res, next) => {
+      const filter = req.decoded;
+      const adminFind = await usersDB.findOne({ email: filter.email });
+      if (adminFind.role === "admin") {
+        next();
+      } else {
+        return res
+          .status(403)
+          .json({ error: true, message: "forbidden access" });
+      }
+    };
+    const verifyInstructor = async (req, res, next) => {
+      const filter = req.decoded;
+      const instructorFind = await usersDB.findOne({ email: filter.email });
+      if (instructorFind.role === "instructor") {
+        next();
+      } else {
+        return res
+          .status(403)
+          .json({ error: true, message: "forbidden access" });
+      }
+    };
+
     // about us team members
     app.get("/team", async (req, res) => {
       const cursor = summerTeam.find({});
@@ -77,7 +101,7 @@ async function run() {
         .toArray();
       res.send({ cursor, courses });
     });
-    // courses data send
+    // courses data send by filter
     app.get("/courses", async (req, res) => {
       const { sort } = req.query;
       if (sort === "true") {
@@ -90,12 +114,15 @@ async function run() {
       const cursor = await coursesDB.find({ status: "success" }).toArray();
       res.send(cursor);
     });
-    app.post("/class", async (req, res) => {
+
+    // instructor data post
+    app.post("/class", verifyJWT, verifyInstructor, async (req, res) => {
       const query = req.body;
       const cursor = await coursesDB.insertOne(query);
       res.send(cursor);
     });
-    app.get("/classes", async (req, res) => {
+    // instructor data send
+    app.get("/classes", verifyJWT, verifyInstructor, async (req, res) => {
       const { email } = req.query;
       const cursor = await coursesDB.find({ email: email }).toArray();
       res.send(cursor);
@@ -108,29 +135,39 @@ async function run() {
         .toArray();
       res.send(cursor);
     });
-    app.get("/courses/list", verifyJWT, async (req, res) => {
+    app.get("/courses/list", verifyJWT, verifyAdmin, async (req, res) => {
       const cursor = await coursesDB.find({}).toArray();
       res.send(cursor);
     });
 
-    app.patch("/courses/update/:id", async (req, res) => {
-      const query = req.body;
-      const id = req.params.id;
-      const cursor = await coursesDB.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { status: query.status } }
-      );
-      res.send(cursor);
-    });
-    app.patch("/courses/update/feedback/:id", async (req, res) => {
-      const query = req.body;
-      const id = req.params.id;
-      const cursor = await coursesDB.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: { feedback: query.middle } }
-      );
-      res.send(cursor);
-    });
+    app.patch(
+      "/courses/update/:id",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const query = req.body;
+        const id = req.params.id;
+        const cursor = await coursesDB.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status: query.status } }
+        );
+        res.send(cursor);
+      }
+    );
+    app.patch(
+      "/courses/update/feedback/:id",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const query = req.body;
+        const id = req.params.id;
+        const cursor = await coursesDB.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { feedback: query.middle } }
+        );
+        res.send(cursor);
+      }
+    );
     // order data post
     app.post("/order", async (req, res) => {
       const query = req.body;
@@ -143,18 +180,23 @@ async function run() {
       const cursor = await orderDB.find({ email: email }).toArray();
       res.send(cursor);
     });
-    app.get("/successful/orders/all", verifyJWT, async (req, res) => {
-      const cursor = await paymentDB.find({}).toArray();
-      res.send(cursor);
-    });
+    app.get(
+      "/successful/orders/all",
+      verifyJWT,
+      verifyAdmin,
+      async (req, res) => {
+        const cursor = await paymentDB.find({}).toArray();
+        res.send(cursor);
+      }
+    );
     // order delete
-    app.delete("/order/:id", async (req, res) => {
+    app.delete("/order/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const cursor = await orderDB.deleteOne({ _id: new ObjectId(id) });
       res.send(cursor);
     });
     // all courses list
-    app.get("/courses/all", verifyJWT, async (req, res) => {
+    app.get("/courses/all", verifyJWT, verifyAdmin, async (req, res) => {
       const cursor = await coursesDB.find({}).toArray();
       res.send(cursor);
     });
@@ -165,7 +207,7 @@ async function run() {
       res.send(cursor);
     });
     // stripe payment intent
-    app.post("/api/payment", async (req, res) => {
+    app.post("/api/payment", verifyJWT, async (req, res) => {
       const { price } = req.body;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: parseInt(price * 100),
@@ -175,7 +217,7 @@ async function run() {
       res.send({ Intent: paymentIntent.client_secret });
     });
     // payment data post
-    app.post("/payment", async (req, res) => {
+    app.post("/payment", verifyJWT, async (req, res) => {
       const query = req.body;
       const cursor = await paymentDB.insertOne(query);
       const deleteQuery = {
@@ -218,18 +260,18 @@ async function run() {
       res.send(cursor);
     });
     // user data send
-    app.get("/users/data", verifyJWT, async (req, res) => {
+    app.get("/users/data", verifyJWT, verifyAdmin, async (req, res) => {
       const cursor = await usersDB.find({}).toArray();
       res.send(cursor);
     });
     // user data delete
-    app.delete("/users/data/:id", async (req, res) => {
+    app.delete("/users/data/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const cursor = await usersDB.deleteOne({ _id: new ObjectId(id) });
       res.send(cursor);
     });
     // user update data
-    app.patch("/users/update/:id", async (req, res) => {
+    app.patch("/users/update/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const query = req.body;
       const id = req.params.id;
       const cursor = await usersDB.updateOne(

@@ -43,7 +43,7 @@ const verifyJWT = (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // datebase list
     const summerTeam = client.db("summerCamp").collection("TeamDB");
@@ -204,7 +204,7 @@ async function run() {
       }
     );
     // order delete
-    app.delete("/order/:id", verifyJWT, verifyAdmin, async (req, res) => {
+    app.delete("/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const cursor = await orderDB.deleteOne({ _id: new ObjectId(id) });
       res.send(cursor);

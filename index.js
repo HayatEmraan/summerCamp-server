@@ -83,13 +83,17 @@ async function run() {
           .json({ error: true, message: "forbidden access" });
       }
     };
-
+    // admin verify
+    app.get("/api/admin/verify", verifyJWT, verifyAdmin, (req, res) => { 
+      res.send({ message: "verified" });
+    });
     // about us team members
     app.get("/team", async (req, res) => {
       const cursor = summerTeam.find({});
       const team = await cursor.toArray();
       res.send(team);
     });
+    
     // instructor list for courses
     app.get("/instuctor", async (req, res) => {
       const query = req.query.name;

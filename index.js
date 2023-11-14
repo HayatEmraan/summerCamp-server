@@ -42,10 +42,6 @@ const verifyJWT = (req, res, next) => {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
-
-    // datebase list
     const summerTeam = client.db("summerCamp").collection("TeamDB");
     const instructorDB = client.db("summerCamp").collection("instructorDB");
     const coursesDB = client.db("summerCamp").collection("coursesDB");
@@ -313,7 +309,7 @@ app.get("/main", (req, res) => {
   res.send(main);
 });
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("server is running!");
 });
 
 app.listen(port);
